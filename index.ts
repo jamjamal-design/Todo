@@ -21,6 +21,15 @@ function completeTodo(index: number) {
   renderTodos(); // Call renderTodos after completing a todo
 }
 
+// Edit a todo
+function editTodo(index: number, newTitle: string, newDueDate?: Date) {
+  if (todoList[index]) {
+    todoList[index].title = newTitle;
+    todoList[index].dueDate = newDueDate;
+  }
+  renderTodos(); // Call renderTodos after editing a todo
+}
+
 // Remove a todo
 function removeTodo(index: number) {
   if (todoList[index]) {
@@ -35,73 +44,84 @@ function listTodos() {
 }
 
 function renderTodos() {
-  const container = document.getElementById('card-container');
-  if (!container) return;
-  container.innerHTML = '';
+    const container = document.getElementById('card-container');
+    if (!container) return;
+    container.innerHTML = '';
 
-  todoList.forEach((todo, idx) => {
+    todoList.forEach((todo, idx) => {
+        const card = document.createElement('div');
+        card.className = 'card mb-3';
 
-    const card = document.createElement('div');
-    card.className = 'todo-card';
+        const cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
 
-    const header = document.createElement('div');
-    header.className = 'todo-header';
-    header.textContent = todo.title;
+        const header = document.createElement('h5');
+        header.className = 'card-title';
+        header.textContent = todo.title;
 
-    const content = document.createElement('div');
-    content.className = 'todo-content';
+        const completedDiv = document.createElement('span');
+        completedDiv.className = `badge ${todo.completed ? 'bg-success' : 'bg-danger'} me-2`;
+        completedDiv.textContent = todo.completed ? 'Completed' : 'Pending';
 
-    const completedDiv = document.createElement('div');
-    completedDiv.className = 'todo-completed';
-    completedDiv.textContent = todo.completed ? 'Completed' : 'Pending';
+        const dueDiv = document.createElement('span');
+        dueDiv.className = 'badge bg-secondary ms-2';
+        if (todo.dueDate) {
+            dueDiv.textContent = 'Due: ' + todo.dueDate.toLocaleDateString();
+        }
 
-    if (todo.completed) {
-      completedDiv.style.color = '#059669';
-    } else {
-      completedDiv.style.color = '#ef4444';
-    }
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'mt-3';
 
-    const dueDiv = document.createElement('div');
-    dueDiv.className = 'todo-due';
+        // Complete button
+        const completeBtn = document.createElement('button');
+        completeBtn.className = 'btn btn-success btn-sm me-2';
+        completeBtn.textContent = 'Complete';
+        completeBtn.onclick = () => {
+            completeTodo(idx);
+        };
 
-    if (todo.dueDate) {
-      dueDiv.textContent = 'Due: ' + todo.dueDate.toLocaleDateString();
-    }
+        // Edit button
+        const editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-warning btn-sm me-2';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => {
+            const newTitle = prompt('Edit task title:', todo.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                let newDueDate: Date | undefined = todo.dueDate;
+                const newDueDateStr = prompt('Edit due date (YYYY-MM-DD):', todo.dueDate ? todo.dueDate.toISOString().slice(0,10) : '');
+                if (newDueDateStr !== null && newDueDateStr.trim() !== '') {
+                    newDueDate = new Date(newDueDateStr);
+                }
+                editTodo(idx, newTitle.trim(), newDueDate);
+            }
+        };
 
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'button-container';
+        const removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger btn-sm';
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => {
+            removeTodo(idx);
+        };
 
-    const completeBtn = document.createElement('button');
-    completeBtn.textContent = 'Complete';
-    completeBtn.onclick = () => {
-      completeTodo(idx);
-    };
+        cardBody.appendChild(header);
+        cardBody.appendChild(completedDiv);
+        if (todo.dueDate) {
+            cardBody.appendChild(dueDiv);
+        }
+        buttonContainer.appendChild(completeBtn);
+        buttonContainer.appendChild(editBtn);
+        buttonContainer.appendChild(removeBtn);
+        cardBody.appendChild(buttonContainer);
 
-    const removeBtn = document.createElement('button');
-    removeBtn.textContent = 'Remove';
-    removeBtn.onclick = () => {
-      removeTodo(idx);
-    };
-    content.appendChild(completedDiv);
-    
-    if (todo.dueDate) {
-      content.appendChild(dueDiv);
-    }
-    buttonContainer.appendChild(completeBtn);
-    buttonContainer.appendChild(removeBtn);
-
-    card.appendChild(header);
-    card.appendChild(content);
-    card.appendChild(buttonContainer);
-
-    container.appendChild(card);
-  });
+        card.appendChild(cardBody);
+        container.appendChild(card);
+    });
 }
 
 // Listen for form submit and add todo
 if (typeof document !== 'undefined') {
   const form = document.getElementById('todo-form');
-  
+
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();

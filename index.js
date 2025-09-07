@@ -14,6 +14,14 @@ function completeTodo(index) {
     }
     renderTodos(); // Call renderTodos after completing a todo
 }
+// Edit a todo
+function editTodo(index, newTitle, newDueDate) {
+    if (todoList[index]) {
+        todoList[index].title = newTitle;
+        todoList[index].dueDate = newDueDate;
+    }
+    renderTodos(); // Call renderTodos after editing a todo
+}
 // Remove a todo
 function removeTodo(index) {
     if (todoList[index]) {
@@ -30,60 +38,62 @@ function renderTodos() {
     if (!container)
         return;
     container.innerHTML = '';
-
     todoList.forEach(function (todo, idx) {
-
         var card = document.createElement('div');
-        card.className = 'todo-card';
-
-        var header = document.createElement('div');
-        header.className = 'todo-header';
+        card.className = 'card mb-3';
+        var cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+        var header = document.createElement('h5');
+        header.className = 'card-title';
         header.textContent = todo.title;
-
-        var content = document.createElement('div');
-        content.className = 'todo-content';
-
-        var completedDiv = document.createElement('div');
-        completedDiv.className = 'todo-completed';
+        var completedDiv = document.createElement('span');
+        completedDiv.className = "badge ".concat(todo.completed ? 'bg-success' : 'bg-danger', " me-2");
         completedDiv.textContent = todo.completed ? 'Completed' : 'Pending';
-        if (todo.completed) {
-            completedDiv.style.color = '#059669';
-        }
-        else {
-            completedDiv.style.color = '#ef4444';
-        }
-
-        var dueDiv = document.createElement('div');
-        dueDiv.className = 'todo-due';
+        var dueDiv = document.createElement('span');
+        dueDiv.className = 'badge bg-secondary ms-2';
         if (todo.dueDate) {
             dueDiv.textContent = 'Due: ' + todo.dueDate.toLocaleDateString();
         }
-
         var buttonContainer = document.createElement('div');
-        buttonContainer.className = 'button-container';
-
+        buttonContainer.className = 'mt-3';
+        // Complete button
         var completeBtn = document.createElement('button');
+        completeBtn.className = 'btn btn-success btn-sm me-2';
         completeBtn.textContent = 'Complete';
         completeBtn.onclick = function () {
             completeTodo(idx);
         };
-
+        // Edit button
+        var editBtn = document.createElement('button');
+        editBtn.className = 'btn btn-warning btn-sm me-2';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = function () {
+            var newTitle = prompt('Edit task title:', todo.title);
+            if (newTitle !== null && newTitle.trim() !== '') {
+                var newDueDate = todo.dueDate;
+                var newDueDateStr = prompt('Edit due date (YYYY-MM-DD):', todo.dueDate ? todo.dueDate.toISOString().slice(0, 10) : '');
+                if (newDueDateStr !== null && newDueDateStr.trim() !== '') {
+                    newDueDate = new Date(newDueDateStr);
+                }
+                editTodo(idx, newTitle.trim(), newDueDate);
+            }
+        };
         var removeBtn = document.createElement('button');
+        removeBtn.className = 'btn btn-danger btn-sm';
         removeBtn.textContent = 'Remove';
         removeBtn.onclick = function () {
             removeTodo(idx);
         };
-
-        content.appendChild(completedDiv);
-        
+        cardBody.appendChild(header);
+        cardBody.appendChild(completedDiv);
         if (todo.dueDate) {
-            content.appendChild(dueDiv);
+            cardBody.appendChild(dueDiv);
         }
         buttonContainer.appendChild(completeBtn);
+        buttonContainer.appendChild(editBtn);
         buttonContainer.appendChild(removeBtn);
-        card.appendChild(header);
-        card.appendChild(content);
-        card.appendChild(buttonContainer);
+        cardBody.appendChild(buttonContainer);
+        card.appendChild(cardBody);
         container.appendChild(card);
     });
 }
